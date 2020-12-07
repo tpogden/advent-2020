@@ -20,6 +20,7 @@ class Graph:
     def __init__(self, directed=False, edgelist=None):
         self.g = defaultdict(set)
         self.directed = directed
+        self.weights = defaultdict(lambda: int(0))
         if edgelist:
             self.insert_edgelist(edgelist)
 
@@ -32,22 +33,25 @@ class Graph:
         if self.directed:
             slist.append('digraph {')
             for x, y in self.edgelist():
-                slist.append(f'  {x} -> {y}')
+                slist.append(f'  "{x}" -> "{y}" [label="{self.weights[(x, y)]}"]')
         else:
             slist.append('graph {')
             for x, y in self.edgelist():
                 if x <= y:
-                    slist.append(f'  {x} -- {y}')
+                    slist.append(f'  "{x}" -- "{y}" [label="{self.weights[(x, y)]}"]')
         slist.append('}')
         return '\n'.join(slist)
 
-    def insert_edge(self, x, y):
+    def insert_edge(self, x, y, weight=None):
         self.g[x].add(y)
+        if weight:
+            self.weights[(x, y)] = weight
         if not self.directed:
             self.g[y].add(x)
+            if weight:
+                self.weights[(y, x)] = weight
 
     def insert_edgelist(self, edgelist):
-        # TODO: rename insert_edges
         for e in edgelist:
             self.insert_edge(*e)
 
@@ -126,82 +130,3 @@ class Graph:
             if list(self.dfs_cycles(v)):
                 return False
         return True
-
-
-# class GraphWeighted:
-
-#     def __init__(self, directed=False, edgelist=None):
-#         self.g = defaultdict(set)
-#         self.directed = directed
-#         if edgelist:
-#             self.insert_edgelist(edgelist)
-
-#     def __repr__(self):
-#         return self.dot_repr()
-
-#     def dot_repr(self):
-#         '''Return DOT languange string representation of the graph.'''
-#         slist = []
-#         if self.directed:
-#             slist.append('digraph {')
-#             for x, y in self.edgelist():
-#                 slist.append(f'  {x} -> {y[0]} [weight="{y[1]}"]')
-#         else:
-#             slist.append('graph {')
-#             for x, y in self.edgelist():
-#                 if x <= y:
-#                     slist.append(f'  {x} -- {y[0]} weight="{y[1]}"]')
-#         slist.append('}')
-#         return '\n'.join(slist)
-
-#     def insert_edge(self, x, y, weight):
-#         self.g[x].add((y, weight))
-#         if not self.directed:
-#             self.g[y].add((x, weight))
-
-#     def insert_edgelist(self, edgelist):
-#         # TODO: rename insert_edges
-#         for e in edgelist:
-#             self.insert_edge(*e)
-
-#     def edgelist(self):
-#         return [(v, e) for v in self.g for e in self.g[v]]
-
-
-#     def bfs(self, start):
-#         visited, queue = set(), deque([start])
-#         while queue:
-#             v = queue.popleft()
-#             if v not in visited:
-#                 visited.add(v)
-#                 for nextv in self.g[v]: #- visited:
-#                     if nextv[0] not in visited:
-#                         queue.append(nextv[0])
-#         return visited
-
-#     def bfs_paths(self, start, goal):
-#         '''Generates paths from start vertex to goal vertex.
-
-#         Because it uses breadth-first traversal, the first path yielded is 
-#         guaranteed to be the shortest possible (see shortest_path()).
-
-#         Args:
-#             start: start vertex
-#             goal: goal vertex 
-
-#         Yields:
-#             paths from start to goal
-#         '''
-#         queue = deque([(start, [start])])
-#         while queue:
-#             (v, path) = queue.popleft()
-#             for nextv in self.g[v] - set(path):
-#                 if nextv == goal:
-#                     yield path + [nextv]
-#                 else:
-#                     queue.append((nextv, path + [nextv]))
-
-    # def path_weight(self, path):
-    #     # return [w for ]
-    #     for v in path[:-1]:
-    #         w = self.g[v]

@@ -1,4 +1,4 @@
-from utils import GraphWeighted 
+from utils import Graph
 
 def read_rules(fpath='data/07-demo.txt'):
     with open(fpath) as f:
@@ -18,31 +18,38 @@ def create_bags_edgelist_weighted(rules_dict):
     edgelist = []
     for k, v in rules_dict.items():
         for i in v:
-            edgelist.append((k, i[1], i[0]))
+            if i[0] == 'no':
+                weight = 0
+            else:
+                weight = int(i[0])
+            edgelist.append((k, i[1], weight))
     return edgelist
 
-rules_dict = read_rules(fpath='data/07-demo-b.txt')
-print(rules_dict)
+# rules_dict = read_rules(fpath='data/07-demo.txt')
+# rules_dict = read_rules(fpath='data/07-demo-b.txt')
+rules_dict = read_rules(fpath='data/07.txt')
 
 edgelist = create_bags_edgelist_weighted(rules_dict)
-print('EDGELIST')
-print(edgelist)
 
-g = GraphWeighted(directed=True, edgelist=edgelist)
-
-# g.insert_edge(x='a', y='b', weight=2)
-
-# print(g.edgelist())
-
-# print(g.g)
+g = Graph(directed=True, edgelist=edgelist)
 
 print(g)
 
-path = ['shiny gold', 'dark red']
+def num_contains(g, bag):
+    total_bags = 0
+    for i in g.g[bag]:
+        num_bags_dir_inside = g.weights[bag, i]
+        # print('bag:', bag, '; i:', i, 
+        #     '; num_bags_dir_inside: ', num_bags_dir_inside)
+        if num_bags_dir_inside != 0:
+            total_bags +=  (num_bags_dir_inside + 
+                num_bags_dir_inside*num_contains(g, i))
+    return total_bags 
 
-pw = g.path_weight(path)
+sol = num_contains(g=g, bag='shiny gold')
+print(sol)
 
-print(pw)
+# dotrepr = g.dot_repr()
 
-# v = g.bfs(start='shiny gold')
-# print(v)
+# with open('dotrepr.txt', 'w') as f:
+#     f.write(dotrepr)
