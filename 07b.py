@@ -47,7 +47,7 @@ def num_contains(g, bag):
     return total_bags 
 
 sol = num_contains(g=g, bag='shiny gold')
-print(sol)
+print('sol:', sol)
 
 # dotrepr = g.dot_repr()
 
