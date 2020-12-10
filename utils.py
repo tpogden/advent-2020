@@ -130,3 +130,74 @@ class Graph:
             if list(self.dfs_cycles(v)):
                 return False
         return True
+
+
+class Backtracker:
+
+    def __init__(self):
+        self.finished = False
+        self.sols = []
+
+    def solve(self, A=None):
+        self.sols = []
+        if A is None:
+            A = []
+        self.backtrack(A=A)
+        return self.sols
+
+    def backtrack(self, A):
+        if self.is_sol(A):
+            self.process_sol(A)
+        else:
+            for c in self.candidates(A):
+                self.make_move(A, c)
+                self.backtrack(A)
+                self.unmake_move(A, c)
+                if self.finished:
+                    return None
+
+    def is_sol(self, A):
+        raise NotImplementedError
+
+    def candidates(self, A):
+        raise NotImplementedError
+
+    def process_sol(self, A):
+        self.sols.append(A[:])
+
+    def make_move(self, A, c):
+        A.append(c)
+
+    def unmake_move(self, A, c):
+        A.pop()
+
+class BacktrackerGraphPaths(Backtracker):
+
+    def __init__(self, graph):
+        super().__init__()
+        self.graph = graph
+
+    def solve(self, start, goal):
+        self.goal = goal
+        return super().solve(A=[start])
+    
+    def process_sol(self, A):
+        self.sols.append(A[:])
+
+    # def solve(self, start, goal, A=None):
+    #     self.sols = 0
+    #     self.goal = goal
+    #     if A is None:
+    #         A = []
+    #     self.backtrack(A=A)
+    #     return self.sols
+
+    # def process_sol(self, A):
+    #     self.sols += 1
+
+    def is_sol(self, A):
+        return A[-1] == self.goal
+
+    def candidates(self, A):
+        return self.graph.g[A[-1]] - set(A)
+
