@@ -20,11 +20,12 @@ def init_cubes(arr, num_cycles=1):
 
     print('start_dim:', start_dim, 'num_cycles:', num_cycles, 'dim:', dim)
 
-    cubes = np.zeros(shape=(num_cycles+1, dim, dim, dim), dtype=np.int)
-    cubes[0, dim//2, idx_0:idx_0+start_dim, idx_0:idx_0+start_dim] = start
+    cubes = np.zeros(shape=(num_cycles+1, dim, dim, dim, dim), dtype=np.int)
+    cubes[0, dim//2, dim//2, idx_0:idx_0+start_dim, 
+        idx_0:idx_0+start_dim] = start
     return cubes
 
-def sum_neighbors(cubes, cycle=0, idx=(0,0,0)):
+def sum_neighbors(cubes, cycle=0, idx=(0,0,0,0)):
     if idx[0] > 0:
         c_x_min = idx[0]-1
     else:
@@ -37,6 +38,10 @@ def sum_neighbors(cubes, cycle=0, idx=(0,0,0)):
         c_z_min = idx[2]-1
     else:
         c_z_min = 0
+    if idx[3] > 0:
+        c_w_min = idx[3]-1
+    else:
+        c_w_min = 0
     if idx[0] < cubes.shape[1]:
         c_x_max = idx[0] + 2
     else:
@@ -49,16 +54,22 @@ def sum_neighbors(cubes, cycle=0, idx=(0,0,0)):
         c_z_max = idx[2] + 2
     else:
         c_z_max = cubes.shape[3]
+    if idx[3] < cubes.shape[4]:
+        c_w_max = idx[3] + 2
+    else:
+        c_w_max = cubes.shape[4]
 
-    region = cubes[cycle, c_x_min:c_x_max, c_y_min:c_y_max, c_z_min:c_z_max]
-    return np.sum(region) - cubes[cycle, idx[0], idx[1], idx[2]]
+    region = cubes[cycle, c_x_min:c_x_max, c_y_min:c_y_max, c_z_min:c_z_max, 
+        c_w_min:c_w_max]
+    return np.sum(region) - cubes[cycle, idx[0], idx[1], idx[2], idx[3]]
 
 def sum_neighbors_all(cubes, cycle=0):
     sna = np.zeros(cubes[cycle].shape)
     for x in range(cubes[cycle].shape[0]):
         for y in range(cubes[cycle].shape[1]):
-            for z in range(cubes[cycle].shape[0]):
-                sna[x, y, z] = sum_neighbors(cubes, cycle, idx=(x,y,z))
+            for z in range(cubes[cycle].shape[2]):
+                for w in range(cubes[cycle].shape[3]):
+                    sna[x, y, z, w] = sum_neighbors(cubes, cycle, idx=(x,y,z,w))
     return sna
 
 def next_is_active(cubes, cycle=0):
@@ -66,7 +77,6 @@ def next_is_active(cubes, cycle=0):
     rule_1 = np.logical_and(cubes[cycle], 
         np.logical_or(sna == 2, sna == 3)).astype(int)
     rule_2 = np.logical_and(np.logical_not(cubes[cycle]), sna == 3).astype(int)
-    # at max, one of rule_1 and rule_2 can be true, so we can sum them
     return rule_1 + rule_2
 
 def step_cubes(cubes, cycle=0):
@@ -75,7 +85,7 @@ def step_cubes(cubes, cycle=0):
     return cubes
 
 def get_num_active(cubes):
-    return np.sum(cubes, axis=(1,2,3))
+    return np.sum(cubes, axis=(1,2,3,4))
 
 def walk_cubes(cubes, num_cycles):
     for cycle in range(num_cycles):
@@ -88,6 +98,7 @@ arr = read_arr(fpath='data/17.txt')
 NUM_CYCLES = 6
 
 cubes = init_cubes(arr, num_cycles=NUM_CYCLES)
+
 walk_cubes(cubes=cubes, num_cycles=NUM_CYCLES)
 
 num_active = get_num_active(cubes)
